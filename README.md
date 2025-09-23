@@ -14,7 +14,7 @@
     <a href="https://chat.whatsapp.com/HXRaAWxxdIQ7ZTrc2o8xlA?mode=ems_copy_t">
       <img src="https://img.shields.io/badge/Discussion Forum-blue?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Whatsapp Group"/>
     <a href="">
-      <img src="https://img.shields.io/badge/Support" alt="Support"/>
+      <img src="https://img.shields.io/badge/Support-blue" alt="Support"/>
     </a>
   </p>
 </div>

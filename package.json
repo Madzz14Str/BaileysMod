@@ -1,6 +1,6 @@
 {
   "name": "@madzoffc/baileysmod",
-  "version": "8.5.5",
+  "version": "8.5.5-rc.2",
   "description": "A WebSockets library for interacting with WhatsApp Web, Modification by MadzOFFC",
   "keywords": [
     "whatsapp",
@@ -21,6 +21,11 @@
       "import": "./lib/index.js"   
     }
   },
+  "files": [
+    "lib/*",
+    "WAProto/*",
+    "engine-requirements.js"
+  ],
   "scripts": {
     "preinstall": "node ./engine-requirements.js"
   },
@@ -88,6 +93,6 @@
   },
   "packageManager": "yarn@1.22.22",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   }
 }
