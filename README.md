@@ -32,6 +32,7 @@ This project is not affiliated with WhatsApp Inc. Use it responsibly. Avoid spam
 <details>
 <summary style="font-weight: bold; cursor: pointer; padding: 8px; border-bottom: 1px solid #eee; margin-bottom: 5px;">Show</summary>
 <div style="padding: 10px 15px; background: #f9f9f9; border: 1px solid #eee; border-top: none; border-radius: 0 0 5px 5px;">
+
 if you install in terminal
 ```bash
 npm install @madzoffc/baileysmod
