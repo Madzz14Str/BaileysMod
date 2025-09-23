@@ -1,6 +1,6 @@
 {
   "name": "@madzoffc/baileysmod",
-  "version": "8.5.5-rc.3",
+  "version": "8.5.6",
   "description": "A WebSockets library for interacting with WhatsApp Web, Modification by MadzOFFC",
   "keywords": [
     "whatsapp",
@@ -15,12 +15,6 @@
   "author": "MadzOFFC",
   "main": "./lib/index.js",       
   "types": "./lib/index.d.ts",
-  "exports": {
-    ".": {
-      "require": "./lib/index.js",
-      "import": "./lib/index.js"   
-    }
-  },
   "files": [
     "lib/*",
     "WAProto/*",
