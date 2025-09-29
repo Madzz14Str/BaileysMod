@@ -16,4 +16,5 @@ export * from './link-preview';
 export * from './event-buffer';
 export * from './process-message';
 export * from './message-retry-manager';
-export * from './lidToJid-test';
+export * from './browser-utils';
+export * from './proto-utils';

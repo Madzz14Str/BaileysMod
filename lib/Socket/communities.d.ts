@@ -9,6 +9,17 @@ export declare const makeCommunitiesSocket: (config: SocketConfig) => {
     communityUpdateSubject: (jid: string, subject: string) => Promise<void>;
     communityLinkGroup: (groupJid: string, parentCommunityJid: string) => Promise<void>;
     communityUnlinkGroup: (groupJid: string, parentCommunityJid: string) => Promise<void>;
+    communityFetchLinkedGroups: (jid: string) => Promise<{
+        communityJid: string;
+        isCommunity: boolean;
+        linkedGroups: {
+            id: string | undefined;
+            subject: string;
+            creation: number | undefined;
+            owner: string | undefined;
+            size: number | undefined;
+        }[];
+    }>;
     communityRequestParticipantsList: (jid: string) => Promise<{
         [key: string]: string;
     }[]>;
@@ -50,7 +61,7 @@ export declare const makeCommunitiesSocket: (config: SocketConfig) => {
     getOrderDetails: (orderId: string, tokenBase64: string) => Promise<import("../Types").OrderDetails>;
     getCatalog: ({ jid, limit, cursor }: import("../Types").GetCatalogOptions) => Promise<{
         products: import("../Types").Product[];
-        nextPageCursor: string | undefined;
+        nextPageCursor: any;
     }>;
     getCollections: (jid?: string, limit?: number) => Promise<{
         collections: import("../Types").CatalogCollection[];
@@ -70,7 +81,7 @@ export declare const makeCommunitiesSocket: (config: SocketConfig) => {
     requestPlaceholderResend: (messageKey: WAMessageKey) => Promise<string | undefined>;
     messageRetryManager: import("../Utils").MessageRetryManager | null;
     getPrivacyTokens: (jids: string[]) => Promise<any>;
-    assertSessions: (jids: string[], force: boolean) => Promise<boolean>;
+    assertSessions: (jids: string[]) => Promise<boolean>;
     relayMessage: (jid: string, message: proto.IMessage, { messageId: msgId, participant, additionalAttributes, additionalNodes, useUserDevicesCache, useCachedGroupMetadata, statusJidList }: import("../Types").MessageRelayOptions) => Promise<string>;
     sendReceipt: (jid: string, participant: string | undefined, messageIds: string[], type: import("../Types").MessageReceiptType) => Promise<void>;
     sendReceipts: (keys: WAMessageKey[], type: import("../Types").MessageReceiptType) => Promise<void>;
@@ -81,12 +92,12 @@ export declare const makeCommunitiesSocket: (config: SocketConfig) => {
         [_: string]: string;
     }>;
     sendPeerDataOperationMessage: (pdoMessage: proto.Message.IPeerDataOperationRequestMessage) => Promise<string>;
-    createParticipantNodes: (jids: string[], message: proto.IMessage, extraAttrs?: BinaryNode["attrs"], dsmMessage?: proto.IMessage) => Promise<{
+    createParticipantNodes: (recipientJids: string[], message: proto.IMessage, extraAttrs?: BinaryNode["attrs"], dsmMessage?: proto.IMessage) => Promise<{
         nodes: BinaryNode[];
         shouldIncludeDeviceIdentity: boolean;
     }>;
     getUSyncDevices: (jids: string[], useCache: boolean, ignoreZeroDevices: boolean) => Promise<(import("../WABinary").JidWithDevice & {
-        wireJid: string;
+        jid: string;
     })[]>;
     updateMediaMessage: (message: proto.IWebMessageInfo) => Promise<proto.IWebMessageInfo>;
     sendMessage: (jid: string, content: import("../Types").AnyMessageContent, options?: import("../Types").MiscMessageGenerationOptions) => Promise<proto.WebMessageInfo | undefined>;
@@ -216,7 +227,7 @@ export declare const makeCommunitiesSocket: (config: SocketConfig) => {
     sendNode: (frame: BinaryNode) => Promise<void>;
     logout: (msg?: string) => Promise<void>;
     end: (error: Error | undefined) => void;
-    onUnexpectedError: (err: Error | import("@hapi/boom").Boom, msg: string) => void;
+    onUnexpectedError: (err: Error | Boom, msg: string) => void;
     uploadPreKeys: (count?: number, retryCount?: number) => Promise<void>;
     uploadPreKeysToServerIfRequired: () => Promise<void>;
     requestPairingCode: (phoneNumber: string, customPairingCode?: string) => Promise<string>;

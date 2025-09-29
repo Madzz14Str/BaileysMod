@@ -1,4 +1,4 @@
-declare function makeOrderedDictionary<T>(idGetter: (item: T) => string): {
+export default function makeOrderedDictionary<T>(idGetter: (item: T) => string): {
     array: T[];
     get: (id: string) => T | undefined;
     upsert: (item: T, mode: 'append' | 'prepend') => void;
@@ -10,4 +10,3 @@ declare function makeOrderedDictionary<T>(idGetter: (item: T) => string): {
     toJSON: () => T[];
     fromJSON: (newItems: T[]) => void;
 };
-export default makeOrderedDictionary;

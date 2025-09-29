@@ -72,4 +72,3 @@ const { makeWASocket } = require("@madzoffc/baileysmod");
 
 ## 📄 License
 MIT © 2025 MadzOFFC
-

@@ -1,0 +1,4 @@
+lib
+node_modules
+baileys_auth_info*
+package-lock.json

@@ -1,13 +1,10 @@
 import type { SignalKeyStoreWithTransaction } from '../Types';
+import type { ILogger } from '../Utils/logger';
 export declare class LIDMappingStore {
     private readonly mappingCache;
     private readonly keys;
-    private onWhatsAppFunc?;
-    constructor(keys: SignalKeyStoreWithTransaction, onWhatsAppFunc?: (...jids: string[]) => Promise<{
-        jid: string;
-        exists: boolean;
-        lid: string;
-    }[] | undefined>);
+    private readonly logger;
+    constructor(keys: SignalKeyStoreWithTransaction, logger: ILogger);
     /**
      * Store LID-PN mapping - USER LEVEL
      */

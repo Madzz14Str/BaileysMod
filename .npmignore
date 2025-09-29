@@ -1,0 +1,8 @@
+src
+Example
+proto-extract
+
+.gitignore
+
+tsconfig.json
+typedoc.json
