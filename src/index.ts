@@ -11,6 +11,3 @@ export * from './WAUSync/index'
 export type WASocket = ReturnType<typeof makeWASocket>
 export { makeWASocket }
 export default makeWASocket
-
-// ESM flag
-export const __esModule = true;
