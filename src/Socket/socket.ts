@@ -12,7 +12,7 @@ import {
 	NOISE_WA_HEADER,
 	UPLOAD_TIMEOUT
 } from '../Defaults'
-import type { SocketConfig } from '../Types'
+import type { LIDMapping, SocketConfig } from '../Types'
 import { DisconnectReason } from '../Types'
 import {
 	addTransactionCapability,
@@ -33,7 +33,6 @@ import {
 	promiseTimeout
 } from '../Utils'
 import { getPlatformId } from '../Utils/browser-utils'
-import { decodeAndHydrate } from '../Utils/proto-utils'
 import {
 	assertNodeErrorFree,
 	type BinaryNode,
@@ -46,6 +45,7 @@ import {
 	jidEncode,
 	S_WHATSAPP_NET
 } from '../WABinary'
+import { BinaryInfo } from '../WAM/BinaryInfo.js'
 import { USyncQuery, USyncUser } from '../WAUSync/'
 import { WebSocketClient } from './Client'
 
@@ -70,6 +70,8 @@ export const makeSocket = (config: SocketConfig) => {
 		qrTimeout,
 		makeSignalRepository
 	} = config
+
+	const publicWAMBuffer = new BinaryInfo()
 
 	const uqTagId = generateMdTagPrefix()
 	const generateMessageTag = () => `${uqTagId}${epoch++}`
@@ -258,13 +260,13 @@ export const makeSocket = (config: SocketConfig) => {
 		return usyncQuery.parseUSyncQueryResult(result)
 	}
 
-	const onWhatsApp = async (...jids: string[]) => {
-		let usyncQuery = new USyncQuery().withLIDProtocol()
+	const onWhatsApp = async (...phoneNumber: string[]) => {
+		let usyncQuery = new USyncQuery()
 
 		let contactEnabled = false
-		for (const jid of jids) {
+		for (const jid of phoneNumber) {
 			if (isLidUser(jid)) {
-				// usyncQuery.withUser(new USyncUser().withLid(jid)) // intentional but needs JID too
+				logger?.warn('LIDs are not supported with onWhatsApp')
 				continue
 			} else {
 				if (!contactEnabled) {
@@ -284,19 +286,33 @@ export const makeSocket = (config: SocketConfig) => {
 		const results = await executeUSyncQuery(usyncQuery)
 
 		if (results) {
-			const lidOnly = results.list.filter(a => !!a.lid)
-			if (lidOnly.length > 0) {
-				const pairs = lidOnly.map(a => ({ pn: a.id, lid: a.lid as string }))
-				await signalRepository.lidMapping.storeLIDPNMappings(pairs)
-				for (const { pn, lid } of pairs) {
-					await signalRepository.migrateSession(pn, lid)
-				}
-			}
-
-			return results.list
-				.filter(a => !!a.contact)
-				.map(({ contact, id, lid }) => ({ jid: id, exists: contact as boolean, lid: lid as string }))
+			return results.list.filter(a => !!a.contact).map(({ contact, id }) => ({ jid: id, exists: contact as boolean }))
 		}
+	}
+
+	const pnFromLIDUSync = async (jids: string[]): Promise<LIDMapping[] | undefined> => {
+		const usyncQuery = new USyncQuery().withLIDProtocol().withContext('background')
+
+		for (const jid of jids) {
+			if (isLidUser(jid)) {
+				logger?.warn('LID user found in LID fetch call')
+				continue
+			} else {
+				usyncQuery.withUser(new USyncUser().withId(jid))
+			}
+		}
+
+		if (usyncQuery.users.length === 0) {
+			return [] // return early without forcing an empty query
+		}
+
+		const results = await executeUSyncQuery(usyncQuery)
+
+		if (results) {
+			return results.list.filter(a => !!a.lid).map(({ lid, id }) => ({ pn: id, lid: lid as string }))
+		}
+
+		return []
 	}
 
 	const ev = makeEventBuffer(logger)
@@ -304,7 +320,7 @@ export const makeSocket = (config: SocketConfig) => {
 	const { creds } = authState
 	// add transaction capability
 	const keys = addTransactionCapability(authState.keys, logger, transactionOpts)
-	const signalRepository = makeSignalRepository({ creds, keys }, logger, onWhatsApp)
+	const signalRepository = makeSignalRepository({ creds, keys }, logger, pnFromLIDUSync)
 
 	let lastDateRecv: Date
 	let epoch = 1
@@ -352,14 +368,14 @@ export const makeSocket = (config: SocketConfig) => {
 		let helloMsg: proto.IHandshakeMessage = {
 			clientHello: { ephemeral: ephemeralKeyPair.public }
 		}
-		helloMsg = proto.HandshakeMessage.create(helloMsg)
+		helloMsg = proto.HandshakeMessage.fromObject(helloMsg)
 
 		logger.info({ browser, helloMsg }, 'connected to WA')
 
 		const init = proto.HandshakeMessage.encode(helloMsg).finish()
 
 		const result = await awaitNextMessage<Uint8Array>(init)
-		const handshake = decodeAndHydrate(proto.HandshakeMessage, result)
+		const handshake = proto.HandshakeMessage.decode(result)
 
 		logger.trace({ handshake }, 'handshake recv from WA')
 
@@ -407,7 +423,7 @@ export const makeSocket = (config: SocketConfig) => {
 	let lastUploadTime = 0
 
 	/** generates and uploads a set of pre-keys to the server */
-	const uploadPreKeys = async (count = INITIAL_PREKEY_COUNT, retryCount = 0) => {
+	const uploadPreKeys = async (count = MIN_PREKEY_COUNT, retryCount = 0) => {
 		// Check minimum interval (except for retries)
 		if (retryCount === 0) {
 			const timeSinceLastUpload = Date.now() - lastUploadTime
@@ -420,7 +436,7 @@ export const makeSocket = (config: SocketConfig) => {
 		// Prevent multiple concurrent uploads
 		if (uploadPreKeysPromise) {
 			logger.debug('Pre-key upload already in progress, waiting for completion')
-			return uploadPreKeysPromise
+			await uploadPreKeysPromise
 		}
 
 		const uploadLogic = async () => {
@@ -441,7 +457,7 @@ export const makeSocket = (config: SocketConfig) => {
 				logger.info({ count }, 'uploaded pre-keys successfully')
 				lastUploadTime = Date.now()
 			} catch (uploadError) {
-				logger.error({ uploadError, count }, 'Failed to upload pre-keys to server')
+				logger.error({ uploadError: (uploadError as Error).toString(), count }, 'Failed to upload pre-keys to server')
 
 				// Exponential backoff retry (max 3 retries)
 				if (retryCount < 3) {
@@ -484,13 +500,16 @@ export const makeSocket = (config: SocketConfig) => {
 
 	const uploadPreKeysToServerIfRequired = async () => {
 		try {
+			let count = 0
 			const preKeyCount = await getAvailablePreKeysOnServer()
+			if (preKeyCount === 0) count = INITIAL_PREKEY_COUNT
+			else count = MIN_PREKEY_COUNT
 			const { exists: currentPreKeyExists, currentPreKeyId } = await verifyCurrentPreKeyExists()
 
 			logger.info(`${preKeyCount} pre-keys found on server`)
 			logger.info(`Current prekey ID: ${currentPreKeyId}, exists in storage: ${currentPreKeyExists}`)
 
-			const lowServerCount = preKeyCount <= MIN_PREKEY_COUNT
+			const lowServerCount = preKeyCount <= count
 			const missingCurrentPreKey = !currentPreKeyExists && currentPreKeyId > 0
 
 			const shouldUpload = lowServerCount || missingCurrentPreKey
@@ -501,7 +520,7 @@ export const makeSocket = (config: SocketConfig) => {
 				if (missingCurrentPreKey) reasons.push(`current prekey ${currentPreKeyId} missing from storage`)
 
 				logger.info(`Uploading PreKeys due to: ${reasons.join(', ')}`)
-				await uploadPreKeys()
+				await uploadPreKeys(count)
 			} else {
 				logger.info(`PreKey validation passed - Server: ${preKeyCount}, Current prekey ${currentPreKeyId} exists`)
 			}
@@ -759,7 +778,7 @@ export const makeSocket = (config: SocketConfig) => {
 			content: [
 				{
 					tag: 'add',
-					attrs: {},
+					attrs: { t: Math.round(Date.now() / 1000) + '' },
 					content: wamBuffer
 				}
 			]
@@ -987,6 +1006,7 @@ export const makeSocket = (config: SocketConfig) => {
 		uploadPreKeys,
 		uploadPreKeysToServerIfRequired,
 		requestPairingCode,
+		wamBuffer: publicWAMBuffer,
 		/** Waits for the connection to WA to reach a state */
 		waitForConnectionUpdate: bindWaitForConnectionUpdate(ev),
 		sendWAMBuffer,

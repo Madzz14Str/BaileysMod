@@ -1,16 +1,13 @@
 {
   "entryPoints": ["src/index.ts"],
-  "out": "docs",
-  "exclude": [
-    "node_modules/**",
-    "lib/**"
-  ],
-  "tsconfig": "tsconfig.json",
+  "out": "docs/api",
   "plugin": ["typedoc-plugin-markdown"],
-  "readme": "none",
-  "hideBreadcrumbs": true,
-  "hideInPageTOC": true,
-  "excludeExternals": true,
   "excludePrivate": true,
-  "excludeProtected": true
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "includeVersion": false,
+  "hideBreadcrumbs": true,
+  "hidePageHeader": true,
+  "entryFileName": "index.md",
+  "readme": "none"
 }

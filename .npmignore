@@ -3,6 +3,12 @@ Example
 proto-extract
 
 .gitignore
+.prettierrc
+.prettierignore
+.release-it.yml
 
+eslint.config.mts
+jest.config.ts
+tsconfig.build.json
 tsconfig.json
 typedoc.json
