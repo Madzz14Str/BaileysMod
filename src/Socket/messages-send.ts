@@ -406,7 +406,7 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 				...jidsRequiringFetch.filter(jid => !!isLidUser(jid) || !!isHostedLidUser(jid)),
 				...(
 					(await signalRepository.lidMapping.getLIDsForPNs(
-						jidsRequiringFetch.filter(jid => !!isPnUser(jid) || !!isHostedPnUser(jid)))
+						jidsRequiringFetch.filter(jid => !!isPnUser(jid) || !!isHostedPnUser(jid))
 					)) || []
 				).map(a => a.lid)
 			]
@@ -973,6 +973,8 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 			return 'livelocation'
 		} else if (message.stickerMessage) {
 			return 'sticker'
+		} else if (message.stickerPackMessage) {
+			return 'sticker_pack'
 		} else if (message.listMessage) {
 			return 'list'
 		} else if (message.listResponseMessage) {
