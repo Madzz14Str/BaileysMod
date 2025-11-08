@@ -301,7 +301,7 @@ export const makeCommunitiesSocket = (config: SocketConfig) => {
       const result = await communityQuery(jid, "set", [
         {
           tag: "membership_requests_action",
-          attrs: action === 'remove' ? { linked_groups: 'true' } : {},
+          attrs: action === "remove" ? { linked_groups: "true" } : {},
           content: [
             {
               tag: action,
