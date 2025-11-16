@@ -581,34 +581,11 @@ export const generateWAMessageContent = async (
   } else if ("listReply" in message) {
     m.listResponseMessage = { ...message.listReply };
   } else if ("event" in message) {
-    m.eventMessage = {};
-    const startTime = Math.floor(message.event.startDate.getTime() / 1000);
-
-    if (message.event.call && options.getCallLink) {
-      const token = await options.getCallLink(message.event.call, {
-        startTime,
-      });
-      m.eventMessage.joinLink =
-        (message.event.call === "audio"
-          ? CALL_AUDIO_PREFIX
-          : CALL_VIDEO_PREFIX) + token;
-    }
-
+    m.eventMessage = { ...message.event };
     m.messageContextInfo = {
       // encKey
       messageSecret: message.event.messageSecret || randomBytes(32),
     };
-
-    m.eventMessage.name = message.event.name;
-    m.eventMessage.description = message.event.description;
-    m.eventMessage.startTime = startTime;
-    m.eventMessage.endTime = message.event.endDate
-      ? message.event.endDate.getTime() / 1000
-      : undefined;
-    m.eventMessage.isCanceled = message.event.isCancelled ?? false;
-    m.eventMessage.extraGuestsAllowed = message.event.extraGuestsAllowed;
-    m.eventMessage.isScheduleCall = message.event.isScheduleCall ?? false;
-    m.eventMessage.location = message.event.location;
   } else if ("poll" in message) {
     message.poll.selectableCount ||= 0;
     message.poll.toAnnouncementGroup ||= false;
@@ -669,7 +646,7 @@ export const generateWAMessageContent = async (
       },
     };
   } else {
-    m = await prepareWAMessageMedia(message, options);
+    m = await prepareWAMessageMedia(message as any, options);
   }
 
   if ("viewOnce" in message && !!message.viewOnce) {

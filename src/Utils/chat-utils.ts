@@ -74,7 +74,7 @@ const generateMac = (
 
 const to64BitNetworkOrder = (e: number) => {
 	const buff = Buffer.alloc(8)
-	buff.writeUint32BE(e, 4)
+	buff.writeUInt32BE(e, 4)
 	return buff
 }
 

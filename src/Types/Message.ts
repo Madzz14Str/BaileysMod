@@ -251,7 +251,6 @@ export type AnyMediaMessageContent = (
       ptt?: boolean;
       /** optionally tell the duration of the audio */
       seconds?: number;
-      waveform?: Uint8Array;
     }
   | ({
       sticker: WAMediaUpload;
@@ -402,14 +401,6 @@ export type AnyRegularMessageContent = (
       time?: 86400 | 604800 | 2592000;
     }
   | {
-      keep: WAMessageKey;
-      type: number;
-      /**
-       * 24 hours, 7 days, 90 days
-       */
-      time?: 86400 | 604800 | 7776000;
-    }
-  | {
       paymentInvite: PaymentInviteInfo;
     }
   | {
@@ -513,20 +504,10 @@ export type MessageGenerationOptionsFromContent =
     userJid: string;
   };
 
-export type WAMediaUploadFunctionOpts = {
-  fileEncSha256B64: string;
-  mediaType: MediaType;
-  newsletter?: boolean;
-  timeoutMs?: number;
-};
 export type WAMediaUploadFunction = (
-  readStream: Readable | Buffer,
-  opts: WAMediaUploadFunctionOpts,
-) => Promise<{
-  mediaUrl: string;
-  directPath: string;
-  handle?: string;
-}>;
+	encFilePath: string,
+	opts: { fileEncSha256B64: string; mediaType: MediaType; timeoutMs?: number }
+) => Promise<{ mediaUrl: string; directPath: string; meta_hmac?: string; ts?: number; fbid?: number }>
 
 export type MediaGenerationOptions = {
   logger?: ILogger;

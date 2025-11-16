@@ -135,10 +135,10 @@ export const makeNoiseHandler = ({
 			if (routingInfo) {
 				header = Buffer.alloc(7)
 				header.write('ED', 0, 'utf8')
-				header.writeUint8(0, 2)
-				header.writeUint8(1, 3)
-				header.writeUint8(routingInfo.byteLength >> 16, 4)
-				header.writeUint16BE(routingInfo.byteLength & 65535, 5)
+				header.writeUInt8(0, 2)
+				header.writeUInt8(1, 3)
+				header.writeUInt8(routingInfo.byteLength >> 16, 4)
+				header.writeUInt16BE(routingInfo.byteLength & 65535, 5)
 				header = Buffer.concat([header, routingInfo, NOISE_HEADER])
 			} else {
 				header = Buffer.from(NOISE_HEADER)

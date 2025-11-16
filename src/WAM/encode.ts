@@ -132,7 +132,7 @@ function serializeData(key: number, value: Value, flag: number): Buffer {
 		if (utf8Bytes < 256) {
 			buffer = Buffer.alloc(bufferLength + 1 + utf8Bytes)
 			offset = serializeHeader(buffer, offset, key, flag | (8 << 4))
-			buffer.writeUint8(utf8Bytes, offset++)
+			buffer.writeUInt8(utf8Bytes, offset++)
 		} else if (utf8Bytes < 65536) {
 			buffer = Buffer.alloc(bufferLength + 2 + utf8Bytes)
 			offset = serializeHeader(buffer, offset, key, flag | (9 << 4))
