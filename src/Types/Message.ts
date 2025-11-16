@@ -342,12 +342,15 @@ export type AlbumMedia =
   | {
       image: WAMediaUpload;
       caption?: string;
+      jpegThumbnail?: string;
     }
-  | {
+  | ({
       video: WAMediaUpload;
       caption?: string;
       gifPlayback?: boolean;
-    };
+      jpegThumbnail?: string;
+      ptv?: boolean;
+    } & { mimetype?: string });
 
 export type AnyRegularMessageContent = (
   | ({
@@ -433,7 +436,7 @@ export type AnyRegularMessageContent = (
   | RequestPhoneNumber
   | ({
       album: AlbumMedia[];
-      caption?: string;
+      delay?: number;
     } & Mentionable &
       Contextable &
       Editable)
@@ -505,9 +508,15 @@ export type MessageGenerationOptionsFromContent =
   };
 
 export type WAMediaUploadFunction = (
-	encFilePath: string,
-	opts: { fileEncSha256B64: string; mediaType: MediaType; timeoutMs?: number }
-) => Promise<{ mediaUrl: string; directPath: string; meta_hmac?: string; ts?: number; fbid?: number }>
+  encFilePath: string,
+  opts: { fileEncSha256B64: string; mediaType: MediaType; timeoutMs?: number },
+) => Promise<{
+  mediaUrl: string;
+  directPath: string;
+  meta_hmac?: string;
+  ts?: number;
+  fbid?: number;
+}>;
 
 export type MediaGenerationOptions = {
   logger?: ILogger;

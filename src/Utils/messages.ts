@@ -629,6 +629,25 @@ export const generateWAMessageContent = async (
         m.pollCreationMessage = pollCreationMessage;
       }
     }
+  } else if ("album" in message) {
+    const { album } = message.album;
+    if (!album || album.length < 2) {
+      throw new Boom(`Album requires at least 2 media`, { statusCode: 400 });
+    }
+    for (const media of album) {
+      if (!("image" in media) && !("video" in media)) {
+        throw new Boom(
+          "Each media in album must have image or video property",
+          { statusCode: 400 },
+        );
+      }
+    }
+    const imageMessages = album.filter(item => "image" in item);
+    const videoMessages = album.filter(item => "video" in item);
+    m.albumMessage = {
+      expectedImageCount,
+      expectedVideoCount,
+    };
   } else if ("sharePhoneNumber" in message) {
     m.protocolMessage = {
       type: proto.Message.ProtocolMessage.Type.SHARE_PHONE_NUMBER,
